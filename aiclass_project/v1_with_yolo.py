@@ -47,7 +47,7 @@ def get_aligned_images():
 
 
 ''' 
-获取随机点三维坐标
+获取点三维坐标
 '''
 def get_3d_camera_coordinate(depth_pixel, aligned_depth_frame, depth_intrin):
     x = depth_pixel[0]
@@ -66,10 +66,6 @@ if __name__=="__main__":
         color_intrin, depth_intrin, img_color, img_depth, aligned_depth_frame = get_aligned_images()        # 获取对齐图像与相机参数
         results = model.track(img_color,conf=0.7,)
         img_color = results[0].plot()
-
-
-
-
         ''' 
         获取随机点三维坐标
         '''
@@ -79,35 +75,37 @@ if __name__=="__main__":
             right_shoulder = results[0].keypoints.xy[0][6]
             position = [int((left_shoulder[0]+right_shoulder[0])/2),int((left_shoulder[1]+right_shoulder[1])/2)]
             print(position)
+            '''
+            無追蹤
+            #coordinate = boxes.xyxy.numpy()
+            #try:
+                #coordinate =coordinate[0]
+                #depth_pixel = [int((coordinate[0]+coordinate[2])/2), int((coordinate[1]+coordinate[3])/2)]        # 设置随机点，以相机中心点为例
+            #except:
+                #depth_pixel = [320, 240]
+            '''
+            dis, camera_coordinate = get_3d_camera_coordinate(position, aligned_depth_frame, depth_intrin)
+            print ('depth: ',dis)       # 深度单位是mm
+            print ('camera_coordinate: ',camera_coordinate)
 
+
+            ''' 
+            显示图像与标注
+            '''
+            #### 在图中标记随机点及其坐标 ####
+            cv2.circle(img_color, position, 8, [255,0,255], thickness=-1)
+            cv2.putText(img_color,"Dis:"+str(dis)+" m", (40,40), cv2.FONT_HERSHEY_COMPLEX, 1.,[0,0,255])
+            cv2.putText(img_color,"X:"+str(camera_coordinate[0])+" m", (80,80), cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
+            cv2.putText(img_color,"Y:"+str(camera_coordinate[1])+" m", (80,120), cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
+            cv2.putText(img_color,"Z:"+str(camera_coordinate[2])+" m",  position, cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
         except:
-            position = [0,0]
             pass
-
-        coordinate = boxes.xyxy.numpy()
-        
-        try:
-            coordinate =coordinate[0]
-            depth_pixel = [int((coordinate[0]+coordinate[2])/2), int((coordinate[1]+coordinate[3])/2)]        # 设置随机点，以相机中心点为例
-        except:
-            depth_pixel = [320, 240]
-
-        dis, camera_coordinate = get_3d_camera_coordinate(position, aligned_depth_frame, depth_intrin)
-        print ('depth: ',dis)       # 深度单位是mm
-        print ('camera_coordinate: ',camera_coordinate)
-
-
-        ''' 
-        显示图像与标注
-        '''
-        #### 在图中标记随机点及其坐标 ####
-        cv2.circle(img_color, position, 8, [255,0,255], thickness=-1)
-        cv2.putText(img_color,"Dis:"+str(dis)+" m", (40,40), cv2.FONT_HERSHEY_COMPLEX, 1.,[0,0,255])
-        cv2.putText(img_color,"X:"+str(camera_coordinate[0])+" m", (80,80), cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
-        cv2.putText(img_color,"Y:"+str(camera_coordinate[1])+" m", (80,120), cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
-        cv2.putText(img_color,"Z:"+str(camera_coordinate[2])+" m",  depth_pixel, cv2.FONT_HERSHEY_COMPLEX, 1.,[255,0,0])
-        
         #### 显示画面 ####
         cv2.imshow('RealSence',img_color)
         key = cv2.waitKey(1)
-
+        if key == ord('q') or key == 27: # Esc
+            print('break')
+            img_color.release()
+            break
+            
+cv2.destroyAllWindows()
