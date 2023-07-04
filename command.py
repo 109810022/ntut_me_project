@@ -101,6 +101,9 @@ def get_3d_camera_coordinate(depth_pixel, aligned_depth_frame, depth_intrin):
     camera_coordinate = rs.rs2_deproject_pixel_to_point(depth_intrin, depth_pixel, dis)
     # print ('camera_coordinate: ',camera_coordinate)
     return dis, camera_coordinate
+'''
+主函式############################################################################
+'''
 if __name__=="__main__":
 
     while True:
